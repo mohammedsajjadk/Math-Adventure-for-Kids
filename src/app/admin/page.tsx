@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { MathCard } from '../../data/cards'
 import { GameSaveSystem, SavedProgress } from '../../utils/saveSystem'
 import { AnkiSettings, AnkiSettingsManager } from '../../utils/ankiSettings'
@@ -28,7 +28,7 @@ export default function AdminPanel() {
   const [showEditModal, setShowEditModal] = useState(false)
 
   // Filter and sort cards based on current filters
-  const applyFiltersAndSort = (cardsToFilter: MathCard[]) => {
+  const applyFiltersAndSort = useCallback((cardsToFilter: MathCard[]) => {
     let filtered = cardsToFilter
 
     // Apply category filter
@@ -73,13 +73,13 @@ export default function AdminPanel() {
     })
 
     return filtered
-  }
+  }, [categoryFilter, difficultyFilter, inputTypeFilter, searchTerm, sortBy])
 
   // Update filtered cards when cards or filters change
   useEffect(() => {
     const filtered = applyFiltersAndSort(cards)
     setFilteredCards(filtered)
-  }, [cards, categoryFilter, difficultyFilter, inputTypeFilter, searchTerm, sortBy])
+  }, [cards, applyFiltersAndSort])
 
   // Load progress and settings on component mount
   useEffect(() => {
@@ -206,7 +206,7 @@ export default function AdminPanel() {
           <h1 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-4">
             🛠️ Admin Panel 🛠️
           </h1>
-          <p className="text-xl text-gray-700">Manage your child's math cards and settings</p>
+          <p className="text-xl text-gray-700">Manage your child&apos;s math cards and settings</p>
         </header>
 
         {/* Quick Customization Tips */}
@@ -216,7 +216,7 @@ export default function AdminPanel() {
             <div className="bg-white/70 rounded-xl p-4">
               <h3 className="font-bold text-purple-600 mb-2">👑 Personalize for Your Daughter</h3>
               <ul className="space-y-1 text-gray-700">
-                <li>• Change "Princess" to her name in page.tsx</li>
+                <li>• Change &quot;Princess&quot; to her name in page.tsx</li>
                 <li>• Customize reward messages</li>
                 <li>• Add story-based math problems</li>
               </ul>
@@ -235,7 +235,7 @@ export default function AdminPanel() {
         {/* Progress Dashboard */}
         {progress && (
           <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border-4 border-white/50 p-8 mb-8">
-            <h2 className="text-3xl font-bold text-purple-700 mb-6">📊 Princess's Progress</h2>
+            <h2 className="text-3xl font-bold text-purple-700 mb-6">📊 Princess&apos;s Progress</h2>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-gradient-to-r from-blue-100 to-blue-200 rounded-2xl p-4 text-center">
@@ -390,10 +390,10 @@ export default function AdminPanel() {
             </div>
             
             <div className="mt-4 p-4 bg-yellow-50 rounded-xl border-2 border-yellow-200">
-              <p className="text-sm text-yellow-800">
-                <strong>💡 Tip:</strong> Start with "Beginner" settings for your 6-year-old. 
-                Cards she finds "Hard" will come back in just {ankiSettings.graduatingInterval} day(s), 
-                while "Easy" cards wait up to {ankiSettings.maximumInterval} days!
+                <p className="text-sm text-yellow-800">
+                <strong>💡 Tip:</strong> Start with &quot;Beginner&quot; settings for your 6-year-old. 
+                Cards she finds &quot;Hard&quot; will come back in just {ankiSettings.graduatingInterval} day(s), 
+                while &quot;Easy&quot; cards wait up to {ankiSettings.maximumInterval} days!
               </p>
             </div>
           </div>

@@ -64,7 +64,7 @@ export default function AnkiDashboard({ onStartSession }: AnkiDashboardProps) {
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
         <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-4">
-          📚 Today's Math Study
+          📚 Today&apos;s Math Study
         </h2>
         <p className="text-xl text-gray-600">Just like Anki, but for math! 🎯</p>
       </div>
@@ -110,7 +110,7 @@ export default function AnkiDashboard({ onStartSession }: AnkiDashboardProps) {
 
       {/* Today's Review Stats */}
       <div className="bg-white/90 rounded-3xl p-6 shadow-xl border-4 border-white/50">
-        <h3 className="text-2xl font-bold text-purple-700 mb-4 text-center">📊 Today's Performance</h3>
+  <h3 className="text-2xl font-bold text-purple-700 mb-4 text-center">📊 Today&apos;s Performance</h3>
         
         <div className="grid grid-cols-4 gap-4">
           <div className="text-center">
@@ -134,7 +134,7 @@ export default function AnkiDashboard({ onStartSession }: AnkiDashboardProps) {
 
       {/* Quick explanation */}
       <div className="mt-6 text-center text-sm text-gray-600 bg-purple-50 rounded-2xl p-4">
-        <p><strong>🎯 How it works:</strong> Cards you find "Hard" come back sooner, "Easy" cards wait longer - just like Anki's spaced repetition!</p>
+        <p><strong>🎯 How it works:</strong> Cards you find &quot;Hard&quot; come back sooner, &quot;Easy&quot; cards wait longer - just like Anki&apos;s spaced repetition!</p>
       </div>
     </div>
   )

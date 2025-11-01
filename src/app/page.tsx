@@ -65,7 +65,7 @@ export default function Home() {
     setScore(savedProgress.totalScore)
     setRewardsCollected(savedProgress.totalRewards)
     setCorrectAnswers(savedProgress.totalCorrectAnswers)
-    
+
     // Load saved Anki mode preference (default to true)
     const savedAnkiMode = localStorage.getItem('mathGameAnkiMode')
     if (savedAnkiMode !== null) {
@@ -75,24 +75,26 @@ export default function Home() {
       setAnkiMode(true)
       localStorage.setItem('mathGameAnkiMode', 'true')
     }
-    
-    // Load saved difficulty preferences
+
+    // Load saved difficulty preferences into a local variable
+    let appliedDifficulties = ['easy']
     const savedDifficulties = localStorage.getItem('mathGameSelectedDifficulties')
     if (savedDifficulties) {
       try {
         const difficulties = JSON.parse(savedDifficulties)
+        appliedDifficulties = difficulties
         setSelectedDifficulties(difficulties)
       } catch (error) {
         console.error('Failed to load difficulty preferences:', error)
       }
     }
-    
+
     // Load active decks for deck selector
     const activeDecks = DeckManager.getActiveDecks()
     if (activeDecks.length > 0) {
       setSelectedDecks(activeDecks.map(deck => deck.id))
     }
-    
+
     // Load cards and filter unanswered ones for the session (client-side only)
     const currentCards = CardManager.loadCards()
     setAllCards(currentCards)
@@ -102,7 +104,7 @@ export default function Home() {
 
     const unansweredCardIds = GameSaveSystem.getUnansweredCards(currentCards.map(c => c.id))
     let unansweredCards = currentCards.filter(card => 
-      selectedDifficulties.includes(card.difficulty) && 
+      appliedDifficulties.includes(card.difficulty) && 
       allowedCategories2.includes(card.category) &&
       unansweredCardIds.includes(card.id)
     )
@@ -110,7 +112,7 @@ export default function Home() {
     if (unansweredCards.length === 0) {
       GameSaveSystem.startNewSession()
       unansweredCards = currentCards.filter(card => 
-        selectedDifficulties.includes(card.difficulty) && 
+        appliedDifficulties.includes(card.difficulty) && 
         allowedCategories2.includes(card.category)
       )
     }
@@ -255,7 +257,7 @@ export default function Home() {
       <SaveIndicator show={showSaveIndicator} />
       <header className="text-center mb-8">
         <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-4">
-          🌟 Mahira's Math Adventure! 🌟
+          🌟 Mahira&apos;s Math Adventure! 🌟
         </h1>
         
         {/* Mode Toggle */}

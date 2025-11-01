@@ -48,7 +48,7 @@ export default function RewardCard({ onCollect, rewardsNeeded }: RewardCardProps
         
         <div className="bg-white/80 rounded-2xl p-4 mb-6">
           <p className="text-xl text-purple-700 font-bold">
-            Collect {rewardsNeeded} more reward cards to get a special surprise from Daddy and Mommy! 💝✨
+            Collect {rewardsNeeded} more reward cards to get a special surprise from the family! 💝✨
           </p>
         </div>
         
@@ -63,7 +63,7 @@ export default function RewardCard({ onCollect, rewardsNeeded }: RewardCardProps
       
       <div className="mt-6 text-center">
         <p className="text-2xl font-bold text-purple-600">
-          Keep going! You're doing amazing! 🚀
+          Keep going! You&apos;re doing amazing! 🚀
         </p>
       </div>
     </div>
