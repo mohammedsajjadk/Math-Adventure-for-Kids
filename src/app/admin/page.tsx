@@ -437,6 +437,8 @@ export default function AdminPanel() {
             <button
               onClick={() => {
                 localStorage.setItem('mathGameSettings', JSON.stringify({ timerDuration, rewardThreshold }))
+                // Notify other parts of the app that settings changed
+                window.dispatchEvent(new Event('mathGameSettingsUpdated'))
                 alert('Game settings saved! 🎯')
               }}
               className="bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-200"
@@ -448,6 +450,8 @@ export default function AdminPanel() {
                 setTimerDuration(30)
                 setRewardThreshold(5)
                 localStorage.removeItem('mathGameSettings')
+                // Notify other parts of the app that settings changed
+                window.dispatchEvent(new Event('mathGameSettingsUpdated'))
                 alert('Settings reset to defaults! ⚙️')
               }}
               className="bg-gradient-to-r from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-200"

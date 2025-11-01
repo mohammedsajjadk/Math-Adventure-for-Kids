@@ -25,6 +25,8 @@ export default function Home() {
   const [showOverview, setShowOverview] = useState(false)
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>(['easy'])
   const [selectedDecks, setSelectedDecks] = useState<string[]>([])
+  const [cardsForReward, setCardsForReward] = useState(5)
+  const [timerDurationSetting, setTimerDurationSetting] = useState(30)
   // Start with empty arrays to avoid server/client render mismatch.
   // We'll load actual cards on the client in useEffect.
   const [allCards, setAllCards] = useState<any[]>([])
@@ -118,13 +120,50 @@ export default function Home() {
     }
 
     setAvailableCards(unansweredCards)
+
+    // Load saved timer and reward settings (from admin panel)
+    const loadSettingsFromStorage = () => {
+      const savedSettings = localStorage.getItem('mathGameSettings')
+      if (savedSettings) {
+        try {
+          const settings = JSON.parse(savedSettings)
+          setTimerDurationSetting(settings.timerDuration || 30)
+          setCardsForReward(settings.rewardThreshold || 5)
+          setTimeLeft(settings.timerDuration || 30)
+        } catch (err) {
+          console.error('Failed to parse mathGameSettings:', err)
+        }
+      }
+    }
+
+    loadSettingsFromStorage()
+
+    // Listen for cross-tab storage changes
+    const storageHandler = (e: StorageEvent) => {
+      if (e.key === 'mathGameSettings') {
+        loadSettingsFromStorage()
+      }
+    }
+
+    // Listen for same-tab custom event dispatched by admin panel
+    const customHandler = (e: Event) => {
+      // custom event detail isn't required because storage was already updated
+      loadSettingsFromStorage()
+    }
+
+    window.addEventListener('storage', storageHandler)
+    window.addEventListener('mathGameSettingsUpdated', customHandler as EventListener)
+
+    return () => {
+      window.removeEventListener('storage', storageHandler)
+      window.removeEventListener('mathGameSettingsUpdated', customHandler as EventListener)
+    }
   }, [])
 
-  const CARDS_FOR_REWARD = 5 // Number of correct answers to get a reward
 
   const startGame = () => {
     setGameActive(true)
-    setTimeLeft(30)
+    setTimeLeft(timerDurationSetting)
     
     // Play welcome audio when starting the game
     AudioFeedback.playGameStart()
@@ -159,9 +198,9 @@ export default function Home() {
       GameSaveSystem.addScore(10)
       setShowSaveIndicator(true)
       
-      if (newCorrectAnswers % CARDS_FOR_REWARD === 0) {
-        setShowReward(true)
-        setGameActive(false)
+        if (newCorrectAnswers % cardsForReward === 0) {
+          setShowReward(true)
+          setGameActive(false)
         // Play reward audio after a short delay
         setTimeout(() => AudioFeedback.playRewardEarned(), 1500)
         return
@@ -201,7 +240,7 @@ export default function Home() {
 
     // Always restart the game and timer for next question
     setGameActive(true)
-    setTimeLeft(30)
+    setTimeLeft(timerDurationSetting)
   }
 
   const collectReward = () => {
@@ -213,7 +252,7 @@ export default function Home() {
     
     setShowReward(false)
     setCurrentCard((prev) => (prev + 1) % availableCards.length)
-    setTimeLeft(30)
+    setTimeLeft(timerDurationSetting)
     setGameActive(true)
   }
 
@@ -293,7 +332,7 @@ export default function Home() {
             <span className="text-2xl font-bold text-pink-600">Rewards: {rewardsCollected}</span>
           </div>
         </div>
-        <ProgressBar current={correctAnswers % CARDS_FOR_REWARD} total={CARDS_FOR_REWARD} />
+  <ProgressBar current={correctAnswers % cardsForReward} total={cardsForReward} />
         
         {/* Difficulty Selector */}
         <div className="flex justify-center items-center gap-4 mb-4">
@@ -388,7 +427,7 @@ export default function Home() {
           </div>
         ) : (
           <>
-            <Timer timeLeft={timeLeft} totalTime={30} />
+            <Timer timeLeft={timeLeft} totalTime={timerDurationSetting} />
             <GameCard
               card={availableCards[currentCard]}
               onAnswer={handleAnswer}
