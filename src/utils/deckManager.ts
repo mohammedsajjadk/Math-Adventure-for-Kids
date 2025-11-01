@@ -73,6 +73,8 @@ export class DeckManager {
   }
 
   static saveDecks(decks: Deck[]): void {
+    // localStorage is only available in the browser. No-op on server.
+    if (typeof window === 'undefined' || !window.localStorage) return
     try {
       localStorage.setItem(this.DECKS_KEY, JSON.stringify(decks))
       console.log('✅ Decks saved successfully!')
@@ -82,6 +84,11 @@ export class DeckManager {
   }
 
   static loadDecks(): Deck[] {
+    // If localStorage is not available (SSR), return defaults without attempting storage access
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return this.getDefaultDecks()
+    }
+
     try {
       const saved = localStorage.getItem(this.DECKS_KEY)
       if (saved) {

@@ -51,6 +51,8 @@ export class AnkiSettingsManager {
   private static SETTINGS_KEY = 'ankiSettings'
   
   static loadSettings(): AnkiSettings {
+    // If localStorage isn't available (SSR), return defaults
+    if (typeof window === 'undefined' || !window.localStorage) return defaultAnkiSettings
     try {
       const saved = localStorage.getItem(this.SETTINGS_KEY)
       if (saved) {
@@ -63,6 +65,7 @@ export class AnkiSettingsManager {
   }
   
   static saveSettings(settings: AnkiSettings): void {
+    if (typeof window === 'undefined' || !window.localStorage) return
     try {
       localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(settings))
     } catch (error) {
@@ -71,6 +74,7 @@ export class AnkiSettingsManager {
   }
   
   static resetToDefaults(): void {
+    if (typeof window === 'undefined' || !window.localStorage) return
     localStorage.removeItem(this.SETTINGS_KEY)
   }
   

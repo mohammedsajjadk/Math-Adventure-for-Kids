@@ -6,6 +6,7 @@ export class CardManager {
   private static CARDS_KEY = 'mathGameCustomCards'
 
   static saveCards(cards: MathCard[]): void {
+    if (typeof window === 'undefined' || !window.localStorage) return
     try {
       localStorage.setItem(this.CARDS_KEY, JSON.stringify(cards))
       console.log('✅ Cards saved successfully!')
@@ -15,6 +16,12 @@ export class CardManager {
   }
 
   static loadCards(): MathCard[] {
+    // If localStorage is not available (SSR), return defaults
+    if (typeof window === 'undefined' || !window.localStorage) {
+      console.log('📖 Loading default cards (SSR)')
+      return [...defaultCards]
+    }
+
     try {
       const saved = localStorage.getItem(this.CARDS_KEY)
       if (saved) {
@@ -55,7 +62,9 @@ export class CardManager {
   }
 
   static resetToDefaults(): MathCard[] {
-    localStorage.removeItem(this.CARDS_KEY)
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem(this.CARDS_KEY)
+    }
     console.log('🔄 Cards reset to defaults')
     return [...defaultCards]
   }

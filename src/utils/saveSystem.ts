@@ -17,6 +17,7 @@ export class GameSaveSystem {
   private static SAVE_KEY = 'mathGameProgress'
 
   static saveProgress(progress: SavedProgress): void {
+    if (typeof window === 'undefined' || !window.localStorage) return
     try {
       localStorage.setItem(this.SAVE_KEY, JSON.stringify(progress))
       console.log('✅ Progress saved successfully!')
@@ -26,6 +27,22 @@ export class GameSaveSystem {
   }
 
   static loadProgress(): SavedProgress {
+    // If localStorage isn't available (SSR), return default progress
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return {
+        totalScore: 0,
+        totalRewards: 0,
+        totalCorrectAnswers: 0,
+        totalQuestionsAnswered: 0,
+        lastPlayDate: new Date().toISOString().split('T')[0],
+        streakDays: 0,
+        achievements: [],
+        favoriteCategories: {},
+        completedCardIds: [],
+        currentSessionAnswered: []
+      }
+    }
+
     try {
       const saved = localStorage.getItem(this.SAVE_KEY)
       if (saved) {
@@ -130,6 +147,7 @@ export class GameSaveSystem {
   }
 
   static clearProgress(): void {
+    if (typeof window === 'undefined' || !window.localStorage) return
     localStorage.removeItem(this.SAVE_KEY)
     console.log('🗑️ Progress cleared')
   }

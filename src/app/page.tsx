@@ -69,25 +69,29 @@ export default function Home() {
     setCorrectAnswers(savedProgress.totalCorrectAnswers)
 
     // Load saved Anki mode preference (default to true)
-    const savedAnkiMode = localStorage.getItem('mathGameAnkiMode')
-    if (savedAnkiMode !== null) {
-      setAnkiMode(savedAnkiMode === 'true')
-    } else {
-      // Set default to true and save it
-      setAnkiMode(true)
-      localStorage.setItem('mathGameAnkiMode', 'true')
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const savedAnkiMode = localStorage.getItem('mathGameAnkiMode')
+      if (savedAnkiMode !== null) {
+        setAnkiMode(savedAnkiMode === 'true')
+      } else {
+        // Set default to true and save it
+        setAnkiMode(true)
+        localStorage.setItem('mathGameAnkiMode', 'true')
+      }
     }
 
     // Load saved difficulty preferences into a local variable
     let appliedDifficulties = ['easy']
-    const savedDifficulties = localStorage.getItem('mathGameSelectedDifficulties')
-    if (savedDifficulties) {
-      try {
-        const difficulties = JSON.parse(savedDifficulties)
-        appliedDifficulties = difficulties
-        setSelectedDifficulties(difficulties)
-      } catch (error) {
-        console.error('Failed to load difficulty preferences:', error)
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const savedDifficulties = localStorage.getItem('mathGameSelectedDifficulties')
+      if (savedDifficulties) {
+        try {
+          const difficulties = JSON.parse(savedDifficulties)
+          appliedDifficulties = difficulties
+          setSelectedDifficulties(difficulties)
+        } catch (error) {
+          console.error('Failed to load difficulty preferences:', error)
+        }
       }
     }
 
@@ -123,6 +127,7 @@ export default function Home() {
 
     // Load saved timer and reward settings (from admin panel)
     const loadSettingsFromStorage = () => {
+      if (typeof window === 'undefined' || !window.localStorage) return
       const savedSettings = localStorage.getItem('mathGameSettings')
       if (savedSettings) {
         try {

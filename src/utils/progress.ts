@@ -62,6 +62,7 @@ export class ProgressTracker {
   }
 
   private loadProgress() {
+    if (typeof window === 'undefined' || !window.localStorage) return
     try {
       const saved = localStorage.getItem('mathProgress')
       if (saved) {
@@ -73,6 +74,7 @@ export class ProgressTracker {
   }
 
   private saveProgress() {
+    if (typeof window === 'undefined' || !window.localStorage) return
     try {
       localStorage.setItem('mathProgress', JSON.stringify(this.sessions))
     } catch (error) {

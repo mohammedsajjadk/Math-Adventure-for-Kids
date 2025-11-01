@@ -19,27 +19,29 @@ export default function AnkiDashboard({ onStartSession }: AnkiDashboardProps) {
 
   useEffect(() => {
     // Convert regular cards to Anki cards if not already done
-    const savedAnkiCards = localStorage.getItem('ankiCards')
-    if (savedAnkiCards) {
-      setAnkiCards(JSON.parse(savedAnkiCards))
-    } else {
-      const initialAnkiCards: AnkiCard[] = mathCards.map(card => ({
-        ...card,
-        easeFactor: 2.5,
-        interval: 0,
-        repetitions: 0,
-        nextReviewDate: new Date().toISOString().split('T')[0],
-        lastReviewDate: '',
-        grade: 0
-      }))
-      setAnkiCards(initialAnkiCards)
-      localStorage.setItem('ankiCards', JSON.stringify(initialAnkiCards))
-    }
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const savedAnkiCards = localStorage.getItem('ankiCards')
+      if (savedAnkiCards) {
+        setAnkiCards(JSON.parse(savedAnkiCards))
+      } else {
+        const initialAnkiCards: AnkiCard[] = mathCards.map(card => ({
+          ...card,
+          easeFactor: 2.5,
+          interval: 0,
+          repetitions: 0,
+          nextReviewDate: new Date().toISOString().split('T')[0],
+          lastReviewDate: '',
+          grade: 0
+        }))
+        setAnkiCards(initialAnkiCards)
+        localStorage.setItem('ankiCards', JSON.stringify(initialAnkiCards))
+      }
 
-    // Load review stats
-    const savedStats = localStorage.getItem('reviewStats')
-    if (savedStats) {
-      setStats(JSON.parse(savedStats))
+      // Load review stats
+      const savedStats = localStorage.getItem('reviewStats')
+      if (savedStats) {
+        setStats(JSON.parse(savedStats))
+      }
     }
   }, [])
 
