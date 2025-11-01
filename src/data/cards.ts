@@ -4,7 +4,7 @@ export interface MathCard {
   answer: string;
   options?: string[];
   difficulty: 'easy' | 'medium' | 'hard';
-  category: 'addition' | 'subtraction' | 'multiplication' | 'division';
+  category: 'addition' | 'subtraction' | 'multiplication' | 'division' | 'spelling';
   inputType?: 'multiple-choice' | 'text-input';
 }
 
@@ -430,3 +430,30 @@ export const mathCards: MathCard[] = [
     inputType: "text-input"
   }
 ];
+
+// SPELLING CARDS: 1 -> One, 2 -> Two, ... 20 -> Twenty
+const spellingCards: MathCard[] = [
+  { id: 51, question: 'Spell the number 1', answer: 'One', difficulty: 'easy', category: 'spelling', inputType: 'text-input' },
+  { id: 52, question: 'Spell the number 2', answer: 'Two', difficulty: 'easy', category: 'spelling', inputType: 'text-input' },
+  { id: 53, question: 'Spell the number 3', answer: 'Three', difficulty: 'easy', category: 'spelling', inputType: 'text-input' },
+  { id: 54, question: 'Spell the number 4', answer: 'Four', difficulty: 'easy', category: 'spelling', inputType: 'text-input' },
+  { id: 55, question: 'Spell the number 5', answer: 'Five', difficulty: 'easy', category: 'spelling', inputType: 'text-input' },
+  { id: 56, question: 'Spell the number 6', answer: 'Six', difficulty: 'easy', category: 'spelling', inputType: 'text-input' },
+  { id: 57, question: 'Spell the number 7', answer: 'Seven', difficulty: 'easy', category: 'spelling', inputType: 'text-input' },
+  { id: 58, question: 'Spell the number 8', answer: 'Eight', difficulty: 'easy', category: 'spelling', inputType: 'text-input' },
+  { id: 59, question: 'Spell the number 9', answer: 'Nine', difficulty: 'easy', category: 'spelling', inputType: 'text-input' },
+  { id: 60, question: 'Spell the number 10', answer: 'Ten', difficulty: 'easy', category: 'spelling', inputType: 'text-input' },
+  { id: 61, question: 'Spell the number 11', answer: 'Eleven', difficulty: 'medium', category: 'spelling', inputType: 'text-input' },
+  { id: 62, question: 'Spell the number 12', answer: 'Twelve', difficulty: 'medium', category: 'spelling', inputType: 'text-input' },
+  { id: 63, question: 'Spell the number 13', answer: 'Thirteen', difficulty: 'hard', category: 'spelling', inputType: 'text-input' },
+  { id: 64, question: 'Spell the number 14', answer: 'Fourteen', difficulty: 'medium', category: 'spelling', inputType: 'text-input' },
+  { id: 65, question: 'Spell the number 15', answer: 'Fifteen', difficulty: 'hard', category: 'spelling', inputType: 'text-input' },
+  { id: 66, question: 'Spell the number 16', answer: 'Sixteen', difficulty: 'hard', category: 'spelling', inputType: 'text-input' },
+  { id: 67, question: 'Spell the number 17', answer: 'Seventeen', difficulty: 'hard', category: 'spelling', inputType: 'text-input' },
+  { id: 68, question: 'Spell the number 18', answer: 'Eighteen', difficulty: 'hard', category: 'spelling', inputType: 'text-input' },
+  { id: 69, question: 'Spell the number 19', answer: 'Nineteen', difficulty: 'hard', category: 'spelling', inputType: 'text-input' },
+  { id: 70, question: 'Spell the number 20', answer: 'Twenty', difficulty: 'hard', category: 'spelling', inputType: 'text-input' }
+]
+
+// Merge spelling cards into exported mathCards
+export const allMathCards = [...mathCards, ...spellingCards]

@@ -10,6 +10,7 @@ import MathOverview from '../components/MathOverview'
 import { GameSaveSystem } from '../utils/saveSystem'
 import { CardManager } from '../utils/cardManager'
 import { DeckManager } from '../utils/deckManager'
+import { AudioFeedback } from '../utils/audioFeedback'
 
 export default function Home() {
   const [currentCard, setCurrentCard] = useState(0)
@@ -20,16 +21,14 @@ export default function Home() {
   const [gameActive, setGameActive] = useState(false)
   const [rewardsCollected, setRewardsCollected] = useState(0)
   const [showSaveIndicator, setShowSaveIndicator] = useState(false)
-  const [ankiMode, setAnkiMode] = useState(false)
+  const [ankiMode, setAnkiMode] = useState(true) // Default to true for Anki mode
   const [showOverview, setShowOverview] = useState(false)
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>(['easy'])
   const [selectedDecks, setSelectedDecks] = useState<string[]>([])
-  const [allCards, setAllCards] = useState(CardManager.loadCards())
-  const [availableCards, setAvailableCards] = useState(() => {
-    const cards = CardManager.loadCards()
-    const activeCards = DeckManager.getCardsForActiveDecks(cards)
-    return activeCards.filter(card => card.difficulty === 'easy')
-  })
+  // Start with empty arrays to avoid server/client render mismatch.
+  // We'll load actual cards on the client in useEffect.
+  const [allCards, setAllCards] = useState<any[]>([])
+  const [availableCards, setAvailableCards] = useState<any[]>([])
 
   // Update available cards when difficulty or deck selection changes
   const updateAvailableCards = (difficulties: string[], decks?: string[]) => {
@@ -67,10 +66,14 @@ export default function Home() {
     setRewardsCollected(savedProgress.totalRewards)
     setCorrectAnswers(savedProgress.totalCorrectAnswers)
     
-    // Load saved Anki mode preference
+    // Load saved Anki mode preference (default to true)
     const savedAnkiMode = localStorage.getItem('mathGameAnkiMode')
     if (savedAnkiMode !== null) {
       setAnkiMode(savedAnkiMode === 'true')
+    } else {
+      // Set default to true and save it
+      setAnkiMode(true)
+      localStorage.setItem('mathGameAnkiMode', 'true')
     }
     
     // Load saved difficulty preferences
@@ -90,35 +93,29 @@ export default function Home() {
       setSelectedDecks(activeDecks.map(deck => deck.id))
     }
     
-    // Filter out cards that were answered in the current session
-    const filterUnansweredCards = () => {
-      const currentCards = CardManager.loadCards()
-      setAllCards(currentCards) // Update allCards state
-      
-      const activeDecks = DeckManager.getActiveDecks()
-      const allowedCategories = activeDecks.map(deck => deck.category)
-      
-      const unansweredCardIds = GameSaveSystem.getUnansweredCards(currentCards.map(c => c.id))
-      const unansweredCards = currentCards.filter(card => 
+    // Load cards and filter unanswered ones for the session (client-side only)
+    const currentCards = CardManager.loadCards()
+    setAllCards(currentCards)
+
+    const activeDecks2 = DeckManager.getActiveDecks()
+    const allowedCategories2 = activeDecks2.map(deck => deck.category)
+
+    const unansweredCardIds = GameSaveSystem.getUnansweredCards(currentCards.map(c => c.id))
+    let unansweredCards = currentCards.filter(card => 
+      selectedDifficulties.includes(card.difficulty) && 
+      allowedCategories2.includes(card.category) &&
+      unansweredCardIds.includes(card.id)
+    )
+
+    if (unansweredCards.length === 0) {
+      GameSaveSystem.startNewSession()
+      unansweredCards = currentCards.filter(card => 
         selectedDifficulties.includes(card.difficulty) && 
-        allowedCategories.includes(card.category) &&
-        unansweredCardIds.includes(card.id)
+        allowedCategories2.includes(card.category)
       )
-      
-      if (unansweredCards.length === 0) {
-        // All cards have been answered in this session, reset for a new round
-        GameSaveSystem.startNewSession()
-        const filtered = currentCards.filter(card => 
-          selectedDifficulties.includes(card.difficulty) && 
-          allowedCategories.includes(card.category)
-        )
-        setAvailableCards(filtered)
-      } else {
-        setAvailableCards(unansweredCards)
-      }
     }
-    
-    filterUnansweredCards()
+
+    setAvailableCards(unansweredCards)
   }, [])
 
   const CARDS_FOR_REWARD = 5 // Number of correct answers to get a reward
@@ -126,6 +123,9 @@ export default function Home() {
   const startGame = () => {
     setGameActive(true)
     setTimeLeft(30)
+    
+    // Play welcome audio when starting the game
+    AudioFeedback.playGameStart()
     
     if (!ankiMode) {
       // Fun mode: shuffle the available cards for random order
@@ -149,6 +149,9 @@ export default function Home() {
       setScore(newScore)
       setCorrectAnswers(newCorrectAnswers)
       
+      // Play correct answer audio
+      AudioFeedback.playCorrectAnswer()
+      
       // Save progress immediately and track this card as answered
       GameSaveSystem.addCorrectAnswer(currentCardData.category, currentCardData.id)
       GameSaveSystem.addScore(10)
@@ -157,8 +160,16 @@ export default function Home() {
       if (newCorrectAnswers % CARDS_FOR_REWARD === 0) {
         setShowReward(true)
         setGameActive(false)
+        // Play reward audio after a short delay
+        setTimeout(() => AudioFeedback.playRewardEarned(), 1500)
         return
       }
+    } else if (!correct && !wasTimedOut) {
+      // Play incorrect answer audio
+      AudioFeedback.playIncorrectAnswer()
+    } else if (wasTimedOut) {
+      // Play time up audio
+      AudioFeedback.playTimeUp()
     }
 
     // Remove the current card from available cards since it's been answered
@@ -205,19 +216,26 @@ export default function Home() {
   }
 
   const handleTimeUp = () => {
-    // Timer stops at 0, doesn't auto-advance anymore
-    // Child must still answer, but wrong/timeout answers don't count for rewards
-    setGameActive(false) // Stop the game, wait for answer
+    // Timer stops at 0, but keep the game active so user can still answer
+    // The answer just won't count for rewards (handled in handleAnswer)
+    // Don't set gameActive to false - let the user still see and answer the question
   }
 
   useEffect(() => {
     let interval: NodeJS.Timeout
     if (gameActive && timeLeft > 0) {
       interval = setInterval(() => {
-        setTimeLeft(timeLeft - 1)
+        const newTimeLeft = timeLeft - 1
+        setTimeLeft(newTimeLeft)
+        
+        // Play warning audio when time is running low
+        if (newTimeLeft === 5) {
+          AudioFeedback.playTimeUpWarning()
+        } else if (newTimeLeft === 0) {
+          // Play time up audio but keep game active
+          AudioFeedback.playTimeUp()
+        }
       }, 1000)
-    } else if (timeLeft === 0 && gameActive) {
-      handleTimeUp()
     }
 
     return () => clearInterval(interval)

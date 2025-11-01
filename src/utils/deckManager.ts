@@ -58,6 +58,16 @@ export class DeckManager {
         color: 'from-orange-400 to-orange-600',
         emoji: '➗',
         cardIds: []
+      },
+      {
+        id: 'spelling',
+        name: 'Spelling Numbers',
+        description: 'Learn spellings for numbers 1 to 20',
+        category: 'spelling',
+        isActive: true,
+        color: 'from-indigo-400 to-indigo-600',
+        emoji: '🔤',
+        cardIds: []
       }
     ]
   }

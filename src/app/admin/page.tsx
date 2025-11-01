@@ -14,6 +14,72 @@ export default function AdminPanel() {
   const [rewardThreshold, setRewardThreshold] = useState(5)
   const [progress, setProgress] = useState<SavedProgress | null>(null)
   const [ankiSettings, setAnkiSettings] = useState<AnkiSettings | null>(null)
+  
+  // Filter and sort states
+  const [filteredCards, setFilteredCards] = useState<MathCard[]>([])
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [difficultyFilter, setDifficultyFilter] = useState('')
+  const [inputTypeFilter, setInputTypeFilter] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [sortBy, setSortBy] = useState<'id' | 'category' | 'difficulty' | 'question'>('id')
+  
+  // Edit card states
+  const [editingCard, setEditingCard] = useState<MathCard | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
+
+  // Filter and sort cards based on current filters
+  const applyFiltersAndSort = (cardsToFilter: MathCard[]) => {
+    let filtered = cardsToFilter
+
+    // Apply category filter
+    if (categoryFilter) {
+      filtered = filtered.filter(card => card.category === categoryFilter)
+    }
+
+    // Apply difficulty filter
+    if (difficultyFilter) {
+      filtered = filtered.filter(card => card.difficulty === difficultyFilter)
+    }
+
+    // Apply input type filter
+    if (inputTypeFilter) {
+      filtered = filtered.filter(card => card.inputType === inputTypeFilter)
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase()
+      filtered = filtered.filter(card => 
+        card.question.toLowerCase().includes(searchLower) ||
+        card.answer.toLowerCase().includes(searchLower)
+      )
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'id':
+          return a.id - b.id
+        case 'category':
+          return a.category.localeCompare(b.category)
+        case 'difficulty':
+          const diffOrder = { 'easy': 1, 'medium': 2, 'hard': 3 }
+          return diffOrder[a.difficulty] - diffOrder[b.difficulty]
+        case 'question':
+          return a.question.localeCompare(b.question)
+        default:
+          return 0
+      }
+    })
+
+    return filtered
+  }
+
+  // Update filtered cards when cards or filters change
+  useEffect(() => {
+    const filtered = applyFiltersAndSort(cards)
+    setFilteredCards(filtered)
+  }, [cards, categoryFilter, difficultyFilter, inputTypeFilter, searchTerm, sortBy])
 
   // Load progress and settings on component mount
   useEffect(() => {
@@ -83,6 +149,26 @@ export default function AdminPanel() {
       setCards(updatedCards)
       alert('Card deleted successfully! 🗑️')
     }
+  }
+
+  const handleEditCard = (card: MathCard) => {
+    setEditingCard({...card})
+    setShowEditModal(true)
+  }
+
+  const handleUpdateCard = () => {
+    if (editingCard && editingCard.question && editingCard.answer) {
+      const updatedCards = CardManager.updateCard(editingCard)
+      setCards(updatedCards)
+      setShowEditModal(false)
+      setEditingCard(null)
+      alert('Card updated successfully! ✏️')
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setShowEditModal(false)
+    setEditingCard(null)
   }
 
   const exportCards = () => {
@@ -531,13 +617,14 @@ export default function AdminPanel() {
                 <label className="block text-lg font-semibold text-gray-700 mb-2">Category</label>
                 <select
                   value={newCard.category}
-                  onChange={(e) => setNewCard({...newCard, category: e.target.value as 'addition' | 'subtraction' | 'multiplication' | 'division'})}
+                  onChange={(e) => setNewCard({...newCard, category: e.target.value as 'addition' | 'subtraction' | 'multiplication' | 'division' | 'spelling'})}
                   className="w-full px-4 py-3 border-2 border-purple-300 rounded-2xl focus:border-purple-500 focus:outline-none text-lg"
                 >
                   <option value="addition">Addition</option>
                   <option value="subtraction">Subtraction</option>
                   <option value="multiplication">Multiplication</option>
                   <option value="division">Division</option>
+                  <option value="spelling">Spelling</option>
                 </select>
               </div>
             </div>
@@ -554,7 +641,7 @@ export default function AdminPanel() {
         {/* Current Cards Section */}
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border-4 border-white/50 p-8 mb-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-3xl font-bold text-purple-700">📚 Math Library ({cards.length} Problems!)</h2>
+            <h2 className="text-3xl font-bold text-purple-700">📚 Math Library ({filteredCards.length} of {cards.length} Problems)</h2>
             <div className="flex gap-3">
               <button
                 onClick={exportCards}
@@ -567,12 +654,120 @@ export default function AdminPanel() {
                   if (confirm('Reset to default cards? This will remove all custom cards!')) {
                     const defaultCards = CardManager.resetToDefaults()
                     setCards(defaultCards)
+                    setFilteredCards(defaultCards)
                     alert('Cards reset to defaults! 🔄')
                   }
                 }}
                 className="bg-gradient-to-r from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white font-bold py-2 px-4 rounded-xl text-sm shadow-lg transform hover:scale-105 transition-all duration-200"
               >
                 🔄 Reset
+              </button>
+            </div>
+          </div>
+
+          {/* Filter and Sort Controls */}
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 mb-6 border-2 border-purple-200">
+            <h3 className="text-xl font-bold text-purple-700 mb-4">🔍 Filter & Sort Cards</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              {/* Category Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="w-full px-3 py-2 border-2 border-purple-300 rounded-xl focus:border-purple-500 focus:outline-none text-sm"
+                >
+                  <option value="">All Categories</option>
+                  <option value="addition">Addition</option>
+                  <option value="subtraction">Subtraction</option>
+                  <option value="multiplication">Multiplication</option>
+                  <option value="division">Division</option>
+                  <option value="spelling">Spelling</option>
+                </select>
+              </div>
+
+              {/* Difficulty Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Difficulty</label>
+                <select
+                  value={difficultyFilter}
+                  onChange={(e) => setDifficultyFilter(e.target.value)}
+                  className="w-full px-3 py-2 border-2 border-purple-300 rounded-xl focus:border-purple-500 focus:outline-none text-sm"
+                >
+                  <option value="">All Difficulties</option>
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+              </div>
+
+              {/* Input Type Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Input Type</label>
+                <select
+                  value={inputTypeFilter}
+                  onChange={(e) => setInputTypeFilter(e.target.value)}
+                  className="w-full px-3 py-2 border-2 border-purple-300 rounded-xl focus:border-purple-500 focus:outline-none text-sm"
+                >
+                  <option value="">All Types</option>
+                  <option value="multiple-choice">Multiple Choice</option>
+                  <option value="text-input">Text Input</option>
+                </select>
+              </div>
+
+              {/* Sort By */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Sort By</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'id' | 'category' | 'difficulty' | 'question')}
+                  className="w-full px-3 py-2 border-2 border-purple-300 rounded-xl focus:border-purple-500 focus:outline-none text-sm"
+                >
+                  <option value="id">ID</option>
+                  <option value="category">Category</option>
+                  <option value="difficulty">Difficulty</option>
+                  <option value="question">Question</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Search Bar */}
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Search Questions</label>
+              <input
+                type="text"
+                placeholder="Search in questions or answers..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-2 border-2 border-purple-300 rounded-xl focus:border-purple-500 focus:outline-none text-sm"
+              />
+            </div>
+
+            {/* Quick Filter Buttons */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => {
+                  setCategoryFilter('')
+                  setDifficultyFilter('')
+                  setInputTypeFilter('')
+                  setSearchTerm('')
+                }}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200"
+              >
+                🔄 Clear All
+              </button>
+              <button
+                onClick={() => setCategoryFilter('spelling')}
+                className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200"
+              >
+                🔤 Spelling Only
+              </button>
+              <button
+                onClick={() => setInputTypeFilter('text-input')}
+                className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200"
+              >
+                📝 Text Input Only
               </button>
             </div>
           </div>
@@ -585,14 +780,14 @@ export default function AdminPanel() {
                   <th className="px-3 py-2 text-left text-sm">ID</th>
                   <th className="px-3 py-2 text-left text-sm">Question</th>
                   <th className="px-3 py-2 text-left text-sm">Answer</th>
-                  <th className="px-3 py-2 text-left text-sm">Type</th>
+                  <th className="px-3 py-2 text-left text-sm">Input Method</th>
                   <th className="px-3 py-2 text-left text-sm">Difficulty</th>
                   <th className="px-3 py-2 text-left text-sm">Category</th>
                   <th className="px-3 py-2 text-center text-sm">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {cards.map((card, index) => (
+                {filteredCards.map((card, index) => (
                   <tr key={card.id} className={`${index % 2 === 0 ? 'bg-purple-50' : 'bg-white'} hover:bg-purple-100 transition-colors`}>
                     <td className="px-3 py-2 font-semibold text-purple-600 text-sm">{card.id}</td>
                     <td className="px-3 py-2 max-w-xs">
@@ -622,19 +817,29 @@ export default function AdminPanel() {
                         card.category === 'addition' ? 'bg-green-100 text-green-700' :
                         card.category === 'subtraction' ? 'bg-blue-100 text-blue-700' :
                         card.category === 'multiplication' ? 'bg-purple-100 text-purple-700' :
-                        'bg-orange-100 text-orange-700'
+                        card.category === 'division' ? 'bg-orange-100 text-orange-700' :
+                        'bg-indigo-100 text-indigo-700'
                       }`}>
                         {card.category.slice(0, 4)}
                       </span>
                     </td>
                     <td className="px-3 py-2 text-center">
-                      <button
-                        onClick={() => handleDeleteCard(card.id)}
-                        className="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded-lg text-xs transform hover:scale-105 transition-all duration-200"
-                        title="Delete this card"
-                      >
-                        🗑️
-                      </button>
+                      <div className="flex gap-1 justify-center">
+                        <button
+                          onClick={() => handleEditCard(card)}
+                          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded-lg text-xs transform hover:scale-105 transition-all duration-200"
+                          title="Edit this card"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCard(card.id)}
+                          className="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded-lg text-xs transform hover:scale-105 transition-all duration-200"
+                          title="Delete this card"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -644,7 +849,7 @@ export default function AdminPanel() {
 
           {/* Mobile Card View */}
           <div className="lg:hidden space-y-4">
-            {cards.map((card) => (
+            {filteredCards.map((card) => (
               <div key={card.id} className="bg-white rounded-2xl p-4 shadow-lg border-2 border-purple-200">
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1">
@@ -652,13 +857,22 @@ export default function AdminPanel() {
                     <div className="text-lg font-bold text-gray-800 mb-2">{card.question}</div>
                     <div className="text-green-600 font-bold mb-2">Answer: {card.answer}</div>
                   </div>
-                  <button
-                    onClick={() => handleDeleteCard(card.id)}
-                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-xl text-sm transform hover:scale-105 transition-all duration-200 ml-2"
-                    title="Delete this card"
-                  >
-                    🗑️ Delete
-                  </button>
+                  <div className="flex gap-2 ml-2">
+                    <button
+                      onClick={() => handleEditCard(card)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-xl text-sm transform hover:scale-105 transition-all duration-200"
+                      title="Edit this card"
+                    >
+                      ✏️ Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCard(card.id)}
+                      className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-xl text-sm transform hover:scale-105 transition-all duration-200"
+                      title="Delete this card"
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="flex flex-wrap gap-2">
@@ -678,7 +892,8 @@ export default function AdminPanel() {
                     card.category === 'addition' ? 'bg-green-100 text-green-700' :
                     card.category === 'subtraction' ? 'bg-blue-100 text-blue-700' :
                     card.category === 'multiplication' ? 'bg-purple-100 text-purple-700' :
-                    'bg-orange-100 text-orange-700'
+                    card.category === 'division' ? 'bg-orange-100 text-orange-700' :
+                    'bg-indigo-100 text-indigo-700'
                   }`}>
                     {card.category}
                   </span>
@@ -687,12 +902,135 @@ export default function AdminPanel() {
             ))}
           </div>
           
+          {filteredCards.length === 0 && cards.length > 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-500 text-lg">No cards match your current filters. Try adjusting the filters above.</p>
+            </div>
+          )}
+          
           {cards.length === 0 && (
             <div className="text-center py-8">
               <p className="text-gray-500 text-lg">No cards available. Add some cards above to get started!</p>
             </div>
           )}
         </div>
+
+        {/* Edit Card Modal */}
+        {showEditModal && editingCard && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-3xl shadow-2xl border-4 border-purple-300 p-8 max-w-2xl w-full max-h-screen overflow-y-auto">
+              <h3 className="text-2xl font-bold text-purple-700 mb-6">✏️ Edit Card</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-lg font-semibold text-gray-700 mb-2">Question</label>
+                  <input
+                    type="text"
+                    value={editingCard.question}
+                    onChange={(e) => setEditingCard({...editingCard, question: e.target.value})}
+                    className="w-full px-4 py-3 border-2 border-purple-300 rounded-2xl focus:border-purple-500 focus:outline-none text-lg"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-lg font-semibold text-gray-700 mb-2">Correct Answer</label>
+                  <input
+                    type="text"
+                    value={editingCard.answer}
+                    onChange={(e) => setEditingCard({...editingCard, answer: e.target.value})}
+                    className="w-full px-4 py-3 border-2 border-purple-300 rounded-2xl focus:border-purple-500 focus:outline-none text-lg"
+                  />
+                </div>
+                
+                {editingCard.inputType === 'multiple-choice' && editingCard.options && (
+                  <div>
+                    <label className="block text-lg font-semibold text-gray-700 mb-2">Answer Options</label>
+                    <div className="grid grid-cols-2 gap-4">
+                      {editingCard.options.map((option, index) => (
+                        <input
+                          key={index}
+                          type="text"
+                          value={option}
+                          onChange={(e) => {
+                            const newOptions = [...editingCard.options!]
+                            newOptions[index] = e.target.value
+                            setEditingCard({...editingCard, options: newOptions})
+                          }}
+                          placeholder={`Option ${index + 1}`}
+                          className="px-4 py-3 border-2 border-purple-300 rounded-2xl focus:border-purple-500 focus:outline-none text-lg"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-lg font-semibold text-gray-700 mb-2">Input Type</label>
+                    <select
+                      value={editingCard.inputType || 'multiple-choice'}
+                      onChange={(e) => {
+                        const inputType = e.target.value as 'multiple-choice' | 'text-input'
+                        const updatedCard = {...editingCard, inputType}
+                        if (inputType === 'multiple-choice' && !updatedCard.options) {
+                          updatedCard.options = ['', '', '', '']
+                        }
+                        setEditingCard(updatedCard)
+                      }}
+                      className="w-full px-4 py-3 border-2 border-purple-300 rounded-2xl focus:border-purple-500 focus:outline-none text-lg"
+                    >
+                      <option value="multiple-choice">Multiple Choice</option>
+                      <option value="text-input">Text Input</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-lg font-semibold text-gray-700 mb-2">Difficulty</label>
+                    <select
+                      value={editingCard.difficulty}
+                      onChange={(e) => setEditingCard({...editingCard, difficulty: e.target.value as 'easy' | 'medium' | 'hard'})}
+                      className="w-full px-4 py-3 border-2 border-purple-300 rounded-2xl focus:border-purple-500 focus:outline-none text-lg"
+                    >
+                      <option value="easy">Easy</option>
+                      <option value="medium">Medium</option>
+                      <option value="hard">Hard</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-lg font-semibold text-gray-700 mb-2">Category</label>
+                    <select
+                      value={editingCard.category}
+                      onChange={(e) => setEditingCard({...editingCard, category: e.target.value as 'addition' | 'subtraction' | 'multiplication' | 'division' | 'spelling'})}
+                      className="w-full px-4 py-3 border-2 border-purple-300 rounded-2xl focus:border-purple-500 focus:outline-none text-lg"
+                    >
+                      <option value="addition">Addition</option>
+                      <option value="subtraction">Subtraction</option>
+                      <option value="multiplication">Multiplication</option>
+                      <option value="division">Division</option>
+                      <option value="spelling">Spelling</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="flex gap-4 pt-4">
+                  <button
+                    onClick={handleUpdateCard}
+                    className="flex-1 bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white font-bold py-4 px-8 rounded-2xl text-xl shadow-xl transform hover:scale-105 transition-all duration-200"
+                  >
+                    ✅ Update Card
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    className="flex-1 bg-gradient-to-r from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white font-bold py-4 px-8 rounded-2xl text-xl shadow-xl transform hover:scale-105 transition-all duration-200"
+                  >
+                    ❌ Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Navigation */}
         <div className="text-center">

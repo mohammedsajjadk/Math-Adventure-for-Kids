@@ -1,6 +1,6 @@
 'use client'
 
-import { MathCard, mathCards as defaultCards } from '../data/cards'
+import { MathCard, allMathCards as defaultCards } from '../data/cards'
 
 export class CardManager {
   private static CARDS_KEY = 'mathGameCustomCards'
