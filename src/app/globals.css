@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+  }
+
+  body {
+    @apply bg-gradient-to-br from-blue-100 via-purple-50 to-pink-100 min-h-screen;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary-400 to-primary-600 hover:from-primary-500 hover:to-primary-700 
+           text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition-all duration-200 
+           hover:scale-105 active:scale-95;
+  }
+
+  .btn-success {
+    @apply bg-gradient-to-r from-success-400 to-success-600 hover:from-success-500 hover:to-success-700 
+           text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition-all duration-200 
+           hover:scale-105 active:scale-95;
+  }
+
+  .card-container {
+    @apply bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border-4 border-white/50 
+           transform transition-all duration-300 hover:shadow-xl;
+  }
+
+  .game-card {
+    @apply card-container p-8 text-center min-h-[300px] flex flex-col justify-center items-center;
+  }
+
+  .reward-card {
+    @apply bg-gradient-to-br from-yellow-200 via-yellow-300 to-yellow-400 
+           rounded-3xl shadow-2xl border-4 border-yellow-500 p-6 text-center 
+           transform rotate-2 hover:rotate-0 transition-all duration-500;
+  }
+}
+
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  background: #f39c12;
+  animation: confetti-fall 3s linear infinite;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
