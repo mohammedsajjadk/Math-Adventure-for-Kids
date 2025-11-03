@@ -167,6 +167,11 @@ export default function Home() {
 
 
   const startGame = () => {
+    if (availableCards.length === 0) {
+      alert('No available cards for the selected decks/difficulties. Please enable some decks in Admin or choose different difficulties.')
+      return
+    }
+
     setGameActive(true)
     setTimeLeft(timerDurationSetting)
     
@@ -184,6 +189,7 @@ export default function Home() {
 
   const handleAnswer = (answer: string, difficulty?: 'again' | 'hard' | 'good' | 'easy') => {
     const currentCardData = availableCards[currentCard]
+    if (!currentCardData) return
     const correct = answer === currentCardData.answer
     const wasTimedOut = timeLeft === 0
     
@@ -256,7 +262,7 @@ export default function Home() {
     GameSaveSystem.addReward()
     
     setShowReward(false)
-    setCurrentCard((prev) => (prev + 1) % availableCards.length)
+    setCurrentCard((prev) => availableCards.length > 0 ? (prev + 1) % availableCards.length : 0)
     setTimeLeft(timerDurationSetting)
     setGameActive(true)
   }
@@ -432,13 +438,27 @@ export default function Home() {
           </div>
         ) : (
           <>
-            <Timer timeLeft={timeLeft} totalTime={timerDurationSetting} />
-            <GameCard
-              card={availableCards[currentCard]}
-              onAnswer={handleAnswer}
-              timeLeft={timeLeft}
-              ankiMode={ankiMode}
-            />
+            {availableCards[currentCard] ? (
+              <>
+                <Timer timeLeft={timeLeft} totalTime={timerDurationSetting} />
+                <GameCard
+                  card={availableCards[currentCard]}
+                  onAnswer={handleAnswer}
+                  timeLeft={timeLeft}
+                  ankiMode={ankiMode}
+                />
+              </>
+            ) : (
+              <div className="text-center p-8">
+                <p className="text-xl text-gray-700">No cards available for the selected decks/difficulties.</p>
+                <button
+                  onClick={() => setShowOverview(true)}
+                  className="mt-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-full"
+                >
+                  📚 Open Library
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>
