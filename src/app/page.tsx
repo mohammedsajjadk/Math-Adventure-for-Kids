@@ -7,6 +7,7 @@ import RewardCard from '../components/RewardCard'
 import Timer from '../components/Timer'
 import SaveIndicator from '../components/SaveIndicator'
 import MathOverview from '../components/MathOverview'
+import RewardsGallery from '../components/RewardsGallery'
 import { GameSaveSystem } from '../utils/saveSystem'
 import { CardManager } from '../utils/cardManager'
 import { DeckManager } from '../utils/deckManager'
@@ -23,6 +24,8 @@ export default function Home() {
   const [showSaveIndicator, setShowSaveIndicator] = useState(false)
   const [ankiMode, setAnkiMode] = useState(true) // Default to true for Anki mode
   const [showOverview, setShowOverview] = useState(false)
+  const [showRewardsGallery, setShowRewardsGallery] = useState(false)
+  const [collectedRewardIds, setCollectedRewardIds] = useState<string[]>([])
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>(['easy'])
   const [selectedDecks, setSelectedDecks] = useState<string[]>([])
   const [cardsForReward, setCardsForReward] = useState(5)
@@ -67,6 +70,19 @@ export default function Home() {
     setScore(savedProgress.totalScore)
     setRewardsCollected(savedProgress.totalRewards)
     setCorrectAnswers(savedProgress.totalCorrectAnswers)
+
+    // Load collected reward IDs
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const savedCollectedRewards = localStorage.getItem('mathGameCollectedRewards')
+      if (savedCollectedRewards) {
+        try {
+          const collectedIds = JSON.parse(savedCollectedRewards)
+          setCollectedRewardIds(collectedIds)
+        } catch (error) {
+          console.error('Failed to load collected rewards:', error)
+        }
+      }
+    }
 
     // Load saved Anki mode preference (default to true)
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -258,8 +274,16 @@ export default function Home() {
     const newRewards = rewardsCollected + 1
     setRewardsCollected(newRewards)
     
-    // Save reward progress
+    // Generate a unique reward ID and add it to collected rewards
+    const newRewardId = `reward-${newRewards}`
+    const updatedCollectedIds = [...collectedRewardIds, newRewardId]
+    setCollectedRewardIds(updatedCollectedIds)
+    
+    // Save reward progress and collected IDs
     GameSaveSystem.addReward()
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('mathGameCollectedRewards', JSON.stringify(updatedCollectedIds))
+    }
     
     setShowReward(false)
     setCurrentCard((prev) => availableCards.length > 0 ? (prev + 1) % availableCards.length : 0)
@@ -339,9 +363,12 @@ export default function Home() {
           <div className="bg-white/80 rounded-full px-6 py-3 shadow-lg">
             <span className="text-2xl font-bold text-purple-600">Score: {score}</span>
           </div>
-          <div className="bg-white/80 rounded-full px-6 py-3 shadow-lg">
-            <span className="text-2xl font-bold text-pink-600">Rewards: {rewardsCollected}</span>
-          </div>
+          <button
+            onClick={() => setShowRewardsGallery(true)}
+            className="bg-white/80 hover:bg-white/90 rounded-full px-6 py-3 shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer"
+          >
+            <span className="text-2xl font-bold text-pink-600">🏆 Rewards: {rewardsCollected}</span>
+          </button>
         </div>
   <ProgressBar current={correctAnswers % cardsForReward} total={cardsForReward} />
         
@@ -462,6 +489,14 @@ export default function Home() {
           </>
         )}
       </div>
+
+      {/* Rewards Gallery Modal */}
+      <RewardsGallery
+        isOpen={showRewardsGallery}
+        onClose={() => setShowRewardsGallery(false)}
+        totalRewards={rewardsCollected}
+        collectedRewards={collectedRewardIds}
+      />
     </div>
   )
 }

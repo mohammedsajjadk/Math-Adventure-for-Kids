@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MathCard } from '../data/cards'
+import { AudioFeedback } from '../utils/audioFeedback'
 
 interface GameCardProps {
   card: MathCard;
@@ -14,6 +15,27 @@ export default function GameCard({ card, onAnswer, timeLeft, ankiMode = false }:
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
   const [textInputAnswer, setTextInputAnswer] = useState<string>('')
   const [showFeedback, setShowFeedback] = useState(false)
+  const [hasPlayedScenario, setHasPlayedScenario] = useState(false)
+
+  // Play audio scenario when card loads (if available)
+  useEffect(() => {
+    if (card.audioScenario && !hasPlayedScenario) {
+      // Small delay to ensure component is mounted and audio is ready
+      const timer = setTimeout(() => {
+        AudioFeedback.readScenario(card.audioScenario!)
+        setHasPlayedScenario(true)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [card.audioScenario, hasPlayedScenario])
+
+  // Reset scenario state when card changes
+  useEffect(() => {
+    setHasPlayedScenario(false)
+    setSelectedAnswer(null)
+    setTextInputAnswer('')
+    setShowFeedback(false)
+  }, [card.id])
 
   const handleAnswerClick = (answer: string) => {
     setSelectedAnswer(answer)
@@ -38,7 +60,32 @@ export default function GameCard({ card, onAnswer, timeLeft, ankiMode = false }:
     setShowFeedback(false)
   }
 
-  const isCorrect = selectedAnswer === card.answer
+  // Check if answer is correct with flexible validation
+  const isAnswerCorrect = (userAnswer: string): boolean => {
+    if (!userAnswer) return false
+    
+    const normalizedAnswer = userAnswer.trim().toLowerCase()
+    const correctAnswer = card.answer.trim().toLowerCase()
+    
+    // Check exact match first
+    if (normalizedAnswer === correctAnswer) return true
+    
+    // Check acceptable alternatives
+    if (card.acceptableAnswers) {
+      return card.acceptableAnswers.some(alt => 
+        alt.trim().toLowerCase() === normalizedAnswer
+      )
+    }
+    
+    // Handle leading zeros (e.g., "01" = "1")
+    if (/^\d+$/.test(normalizedAnswer) && /^\d+$/.test(correctAnswer)) {
+      return parseInt(normalizedAnswer, 10) === parseInt(correctAnswer, 10)
+    }
+    
+    return false
+  }
+
+  const isCorrect = isAnswerCorrect(selectedAnswer || '')
 
   return (
     <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border-4 border-white/50 p-8 text-center min-h-[400px] flex flex-col justify-center items-center transform transition-all duration-300 hover:shadow-xl">
@@ -101,9 +148,25 @@ export default function GameCard({ card, onAnswer, timeLeft, ankiMode = false }:
       ) : (
         <>
           <div className="mb-8">
-            <h2 className="text-6xl font-bold text-purple-700 mb-4">
-              {card.question}
-            </h2>
+            {card.hideVisualQuestion ? (
+              // Audio scenario mode - show listen prompt and replay button
+              <div className="text-center">
+                <h2 className="text-4xl font-bold text-purple-700 mb-4">
+                  🎧 Listen to the Story!
+                </h2>
+                <button
+                  onClick={() => card.audioScenario && AudioFeedback.readScenario(card.audioScenario)}
+                  className="bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-200 mb-4"
+                >
+                  🔊 Replay Story
+                </button>
+              </div>
+            ) : (
+              // Regular mode - show question text
+              <h2 className="text-6xl font-bold text-purple-700 mb-4">
+                {card.question}
+              </h2>
+            )}
             <div className="flex justify-center items-center gap-2">
               <span className="text-2xl">⏰</span>
               <span className={`text-2xl font-bold ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-gray-600'}`}>

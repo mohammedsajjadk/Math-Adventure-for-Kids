@@ -200,4 +200,9 @@ export class AudioFeedback {
     const randomMessage = messages[Math.floor(Math.random() * messages.length)]
     this.speak(randomMessage, { rate: 1.0, pitch: 1.4 })
   }
+
+  // Public method for reading custom scenarios with natural speech settings
+  static readScenario(text: string): void {
+    this.speak(text, { rate: 0.9, pitch: 1.0, volume: 0.9 })
+  }
 }

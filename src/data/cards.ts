@@ -6,21 +6,102 @@ export interface MathCard {
   difficulty: 'easy' | 'medium' | 'hard';
   category: 'addition' | 'subtraction' | 'multiplication' | 'division' | 'spelling';
   inputType?: 'multiple-choice' | 'text-input';
+  audioScenario?: string; // Funny scenario read aloud instead of showing question
+  hideVisualQuestion?: boolean; // Hide the question text when audioScenario is used
+  acceptableAnswers?: string[]; // Alternative valid answers (e.g., "01" for "1")
 }
 
 export const mathCards: MathCard[] = [
-  // ADDITION & SUBTRACTION - User requested set (text-input)
+  // ADDITION & SUBTRACTION - User requested set (text-input) with funny scenarios
   {
-    id: 71, question: "13 + 20 = ?", answer: "33", difficulty: "medium", category: "addition", inputType: "text-input"
+    id: 71, 
+    question: "13 + 20 = ?", 
+    answer: "33", 
+    difficulty: "medium", 
+    category: "addition", 
+    inputType: "text-input",
+    audioScenario: "Maahira found 13 magical unicorn stickers in her backpack! Then her brother Yoosuf gave her 20 more because he felt generous. How many sparkly unicorn stickers does Maahira have now?",
+    hideVisualQuestion: true,
+    acceptableAnswers: ["33", "thirty-three", "thirty three"]
   },
-  { id: 72, question: "63 - 20 = ?", answer: "43", difficulty: "medium", category: "subtraction", inputType: "text-input" },
-  { id: 73, question: "41 + 40 = ?", answer: "81", difficulty: "medium", category: "addition", inputType: "text-input" },
-  { id: 74, question: "81 - 40 = ?", answer: "41", difficulty: "medium", category: "subtraction", inputType: "text-input" },
+  { 
+    id: 72, 
+    question: "63 - 20 = ?", 
+    answer: "43", 
+    difficulty: "medium", 
+    category: "subtraction", 
+    inputType: "text-input",
+    audioScenario: "Yoosuf had 63 gummy bears but he got too excited and ate 20 of them before dinner! Maryam counted how many were left. How many gummy bears survived Yoosuf's snack attack?",
+    hideVisualQuestion: true,
+    acceptableAnswers: ["43", "forty-three", "forty three"]
+  },
+  { 
+    id: 73, 
+    question: "41 + 40 = ?", 
+    answer: "81", 
+    difficulty: "medium", 
+    category: "addition", 
+    inputType: "text-input",
+    audioScenario: "Ms. Deenihan brought 41 colorful pencils to class. Then Ahmed's mom donated 40 more pencils because she wanted to help! How many pencils does the class have now for their art project?",
+    hideVisualQuestion: true,
+    acceptableAnswers: ["81", "eighty-one", "eighty one"]
+  },
+  { 
+    id: 74, 
+    question: "81 - 40 = ?", 
+    answer: "41", 
+    difficulty: "medium", 
+    category: "subtraction", 
+    inputType: "text-input",
+    audioScenario: "Haaniya collected 81 beautiful seashells at the beach. But then a sneaky seagull flew away with 40 of them! How many seashells does Haaniya still have?",
+    hideVisualQuestion: true,
+    acceptableAnswers: ["41", "forty-one", "forty one"]
+  },
 
-  { id: 75, question: "24 + 30 = ?", answer: "54", difficulty: "medium", category: "addition", inputType: "text-input" },
-  { id: 76, question: "74 - 30 = ?", answer: "44", difficulty: "medium", category: "subtraction", inputType: "text-input" },
-  { id: 77, question: "18 + 50 = ?", answer: "68", difficulty: "medium", category: "addition", inputType: "text-input" },
-  { id: 78, question: "88 - 50 = ?", answer: "38", difficulty: "medium", category: "subtraction", inputType: "text-input" },
+  { 
+    id: 75, 
+    question: "24 + 30 = ?", 
+    answer: "54", 
+    difficulty: "medium", 
+    category: "addition", 
+    inputType: "text-input",
+    audioScenario: "Sajjad bought 24 delicious cookies from the bakery. Then Farheen surprised everyone with 30 more homemade cookies! How many cookies does the family have for their tea party?",
+    hideVisualQuestion: true,
+    acceptableAnswers: ["54", "fifty-four", "fifty four"]
+  },
+  { 
+    id: 76, 
+    question: "74 - 30 = ?", 
+    answer: "44", 
+    difficulty: "medium", 
+    category: "subtraction", 
+    inputType: "text-input",
+    audioScenario: "Yousuf Huda was playing with 74 bouncy balls in the playground! But 30 balls rolled away down the hill when he wasn't looking. How many bouncy balls does he have left to play with?",
+    hideVisualQuestion: true,
+    acceptableAnswers: ["44", "forty-four", "forty four"]
+  },
+  { 
+    id: 77, 
+    question: "18 + 50 = ?", 
+    answer: "68", 
+    difficulty: "medium", 
+    category: "addition", 
+    inputType: "text-input",
+    audioScenario: "Maryam had 18 toy dinosaurs in her collection. Then her cousin gave her 50 more dinosaurs because she loves them so much! How many roaring dinosaurs does Maryam have now?",
+    hideVisualQuestion: true,
+    acceptableAnswers: ["68", "sixty-eight", "sixty eight"]
+  },
+  { 
+    id: 78, 
+    question: "88 - 50 = ?", 
+    answer: "38", 
+    difficulty: "medium", 
+    category: "subtraction", 
+    inputType: "text-input",
+    audioScenario: "Ahmed collected 88 bottle caps for his science project. But he used 50 of them to build a super cool robot! How many bottle caps does Ahmed still have?",
+    hideVisualQuestion: true,
+    acceptableAnswers: ["38", "thirty-eight", "thirty eight"]
+  },
 
   { id: 79, question: "31 + 40 = ?", answer: "71", difficulty: "medium", category: "addition", inputType: "text-input" },
   { id: 80, question: "81 - 40 = ?", answer: "41", difficulty: "medium", category: "subtraction", inputType: "text-input" },
@@ -40,7 +121,7 @@ export const mathCards: MathCard[] = [
   { id: 91, question: "29 + 70 = ?", answer: "99", difficulty: "medium", category: "addition", inputType: "text-input" },
   { id: 92, question: "89 - 70 = ?", answer: "19", difficulty: "medium", category: "subtraction", inputType: "text-input" },
   { id: 93, question: "57 + 90 = ?", answer: "147", difficulty: "medium", category: "addition", inputType: "text-input" },
-  { id: 94, question: "87 - 90 = ?", answer: "-3", difficulty: "medium", category: "subtraction", inputType: "text-input" },
+  { id: 94, question: "90 - 87 = ?", answer: "3", difficulty: "medium", category: "subtraction", inputType: "text-input" },
 
   { id: 95, question: "36 + 80 = ?", answer: "116", difficulty: "medium", category: "addition", inputType: "text-input" },
   { id: 96, question: "96 - 80 = ?", answer: "16", difficulty: "medium", category: "subtraction", inputType: "text-input" },
